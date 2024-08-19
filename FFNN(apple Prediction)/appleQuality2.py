@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #5.	Create your neural network classifier that has some hidden layers
 class FeedforwardNeuralNetModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -19,12 +20,12 @@ class FeedforwardNeuralNetModel(nn.Module):
         # Linear function 2: 100 --> 100
         self.fc2 = nn.Linear(hidden_dim, 128)
         # Non-linearity 2
-        self.relu2 = nn.ReLU()
+        #self.relu2 = nn.ReLU()
         self.dropout = nn.Dropout(0.2)
         # Linear function 3: 100 --> 100
         self.fc3 = nn.Linear(128, 64)
         # Non-linearity 3
-        self.relu3 = nn.ReLU()
+        #self.relu3 = nn.ReLU()
 
         # Linear function 4 (readout): 100 --> 10
         self.fc4 = nn.Linear(64, output_dim)  
@@ -42,12 +43,12 @@ class FeedforwardNeuralNetModel(nn.Module):
         # Linear function 2
         x = self.fc2(x)
         # Non-linearity 2
-        x = self.relu2(x)
+        x = self.relu1(x)
 
         # Linear function 2
         x = self.fc3(x)
         # Non-linearity 2
-        x = self.relu3(x)
+        x = self.relu1(x)
 
         # Linear function 4 (readout)
         x = self.fc4(x)
@@ -76,7 +77,11 @@ def main():
     train_input, test_input, train_output, test_output = train_test_split(data_array, labels_array,
                                                     test_size=0.1, random_state=42)
     train_input, test_input = torch.from_numpy(train_input).float(), torch.from_numpy(test_input).float()
-
+    train_output, test_output = torch.from_numpy(train_output).float(), torch.from_numpy(test_output).float()
+    train_input=train_input.to(device)
+    test_input=test_input.to(device)
+    train_output=train_output.to(device)
+    test_output=test_output.to(device)
 
     '''for column in df: 
         if(column!="Quality" and column!="A_id"):
@@ -107,14 +112,14 @@ def main():
     #6.Use CrossEntropyLoss and the Adam optimizer to train your Neural network.
     data_shape=data_array.shape[1]
     #label_shape=labels_array.shape[1]
-    fnn=FeedforwardNeuralNetModel(data_shape,256,2)
-    #criterion = nn.CrossEntropyLoss()
-    criterion = torch.nn.BCELoss() 
+    fnn=FeedforwardNeuralNetModel(data_shape,256,1).to(device)
+    criterion = nn.CrossEntropyLoss()
+    #criterion = torch.nn.BCELoss() 
     rate_learning=1e-4
-    optim = torch.optim.Adam(fnn.parameters(), lr=rate_learning)
+    optim = torch.optim.Adam(fnn.parameters(), lr=rate_learning,weight_decay=1.5, eps=1e-8)
 
     ## trainning, ideally need to be in a separate file, but it's simple model, so good enough, I guess(8/11/2024)
-    for epoch in range(200):
+    for epoch in range(2000):
         running_loss=0
         i=0
         for input, label in zip(train_input, train_output): 
@@ -130,7 +135,8 @@ def main():
             #print(output.dtype)
             #print(label.dtype)
             #print(output,label)
-            loss=criterion((output+1)/2,label)
+            loss = criterion(output, label)
+            #loss=criterion((output+1)/2,label)
             loss.requires_grad = True
             loss.backward()
             optim.step()
@@ -151,6 +157,7 @@ def main():
             # the class with the highest energy is what we choose as prediction
             predicted=1 if (output.data.item()>0) else 0
             label=label.item()
+            #print(output.data,predicted, label)
             total+=1
             correct += (predicted == label)
 
