@@ -1,6 +1,10 @@
 ## Apple qulaity result. Run on anaconda, Macbook pro, without GPU
 ![image](https://github.com/user-attachments/assets/cf0d68c9-6bf2-4351-bafa-beca6ee2ee19)
 
+## Apple qulaity result.With GPU
+![image](https://github.com/user-attachments/assets/ba7b27af-e196-429c-a155-c154d597cb16)
+
+
 ## GAN FashionMnist (GPU)
 ![image](https://github.com/user-attachments/assets/cb64b367-51e1-4d99-a246-134e5b20c651)
 
